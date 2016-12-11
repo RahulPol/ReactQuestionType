@@ -1,4 +1,10 @@
 
+var Option = React.createClass({
+    render:function(){
+        return (<div id={this.props.optionId}></div>);
+    }//render
+});
+
 var OptionSet = React.createClass({
 
     getInitialState:function(){
@@ -17,12 +23,22 @@ var OptionSet = React.createClass({
         }
     },//optionCount
 
-    renderNew:function(){
+    eachOption: function (i,text,value) {        
+        return (
+            <Option key={i} optionId={text} optionValue={value}>                
+            </Option>
+        );
+    },
 
+    renderNew:function(optionCount){               
+        for(var i=0; i<optionCount; i++){
+            return this.eachOption(i,"option-"+this.state.optionText[i],"");
+        }        
     },//renderNew
 
-    renderFromDB:function(){
-
+    renderFromDB:function(optionCount){
+        //retrieve data from db and call eachOption with value
+        return <div></div>;
     },//renderFromDB
 
     shouldComponentUpdate: function () {        
@@ -30,12 +46,12 @@ var OptionSet = React.createClass({
     },//shouldComponentUpdate
 
     render:function(){
-        var totalOptions = this.optionCount();
+        var optionCount = this.optionCount();
         if(this.props.action == "create"){
-            return this.renderNew();
+            return this.renderNew(optionCount);
         }
         else if(this.props.action == "edit"){
-            return this.renderFromDB();
+            return this.renderFromDB(optionCount);
         }
     }//render
 });
@@ -57,7 +73,7 @@ var Question = React.createClass({
     render:function(){
         return (
             <div className="question-body">
-                <textarea id={this.props.questionId} rows="5" cols="50" >
+                <textarea id={this.props.questionId} rows="5" cols="50">
                 </textarea>
             </div>
         );
