@@ -1,0 +1,7 @@
+.mcq-board .question-header .question-title {
+    font-size: 24px;
+}
+
+.mcq-board .question .question-body {
+    margin-top:10px;
+}
