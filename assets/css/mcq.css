@@ -5,3 +5,15 @@
 .mcq-board .question .question-body {
     margin-top:10px;
 }
+
+.mcq-board .option .option-set {
+    margin-top: 20px;
+}
+
+.mcq-board .option .option-set .option-title {
+    font-size: 24px;
+}
+
+.mcq-board .option .option-set .option-body {
+    margin-top:10px;
+}
