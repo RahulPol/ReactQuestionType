@@ -33,7 +33,7 @@ var Option = React.createClass({
 
         return (
             <div className="option-body col-md-6">
-                <div className="option-header">
+                <div className="option-body-header">
                     <span className="option-title">({this.props.optionText})</span>
                     <span className="pull-right"> 
                         <button  className={optionButtonClass} onClick={this.onTickClicked}>
@@ -41,7 +41,7 @@ var Option = React.createClass({
                         </button> 
                     </span>                    
                 </div>
-                <div className="option-text">
+                <div className="option-body-text">
                     <textarea id={this.props.optionId} defaultValue={value}  rows="5" cols="50">
                     </textarea>
                 </div>
