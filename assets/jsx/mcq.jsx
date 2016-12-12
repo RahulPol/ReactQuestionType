@@ -5,25 +5,25 @@ var Option = React.createClass({
         return { selected: false }
     },
 
-    onTickClicked:function(){
+    onTickClicked: function () {
         this.setState({ selected: !this.state.selected });
     },//onTickClicked
 
-    componentDidMount: function(){
+    componentDidUpdate: function () {
+        CKEDITOR.instances[this.props.optionId].setData(this.props.optionValue);
+    },
+
+    componentDidMount: function () {
         CKEDITOR.replace(this.props.optionId);
     },//componentDidMount
 
-    render:function(){
 
-        var value = "";
-        if(this.props.action == "create"){
-            value = "";
-        }
-        else if(this.props.action == "edit"){
-            //call db and get option value
-            value= "this is from db";
-        }
+    remove: function () {
+        console.log("Removing comment");
+        this.props.removeOption(this.props.index);
+    },//remove
 
+    render: function () {
         var optionButtonClass = "btn btn-sm btn-default";
         if (this.state.selected == true) {
             optionButtonClass = "btn btn-sm btn-success";
@@ -34,15 +34,16 @@ var Option = React.createClass({
         return (
             <div className="option-body col-md-6">
                 <div className="option-body-header">
-                    <span className="option-title">({this.props.optionText})</span>
-                    <span className="pull-right"> 
-                        <button  className={optionButtonClass} onClick={this.onTickClicked}>
+                    <span className="option-body-title">({this.props.optionText})</span>
+                    <span className="pull-right">
+                        <button className={optionButtonClass} onClick={this.onTickClicked}>
                             <i className="fa fa-check" style={{ paddingRight: 10 + 'px' }}></i>mark this option as answer.
-                        </button> 
-                    </span>                    
+                        </button>
+                        <button className="btn btn-danger" onClick={this.remove} style={{ marginLeft: 10 + 'px' }}><i className="fa fa-trash"></i></button>
+                    </span>
                 </div>
                 <div className="option-body-text">
-                    <textarea id={this.props.optionId} defaultValue={value}  rows="5" cols="50">
+                    <textarea id={this.props.optionId} ref={this.props.optionId} defaultValue={this.props.optionValue} rows="5" cols="50">
                     </textarea>
                 </div>
             </div>
@@ -52,35 +53,92 @@ var Option = React.createClass({
 
 var OptionSet = React.createClass({
 
-    getInitialState:function(){
+    getInitialState: function () {
+        var options = [];
+        if (this.props.action == 'edit') {
+            //get data for options from database
+            options.push({
+                text: 'A',
+                body: '<b>Test this, option from db!</b>'
+            })
+        }
+
         return {
-            optionText:['A','B','C','D','E','F']
+            optionText: ['A', 'B', 'C', 'D', 'E', 'F'],
+            options: options
         }
     },
 
-    optionCount: function(){
-        if(this.props.action == 'create'){
-            return 4;
-        }
-        else if(this.props.action == 'edit'){
-            //call db with question id as this.props.questionId and get the count
-            return 6;
-        }
-    },//optionCount    
+    eachOption: function (option, i) {
+        var optionId = "option" + option.text;
+        console.log('option body..', option);
+        return (
+            <Option key={i} index={i} ref={optionId} optionText={option.text} optionValue={option.body} optionId={optionId} questionId={this.props.questionId}
+                action={this.props.action} removeOption={this.remove}></Option>
+        );
+    },//eachOption
 
-    render:function(){
-        var optionCount = this.optionCount();
-        var options = [];
-        for(var i=0; i<optionCount; i++) {
-            var optionId = "option-" + this.state.optionText[i];
-            options.push(<Option key={i} optionText={this.state.optionText[i]} optionId={optionId} questionId={this.props.questionId} action={this.props.action}></Option>);
+    add: function () {
+        var arr = this.state.options;
+        var optionCount = arr.length;
+        if (optionCount < 6) {
+            arr.push({
+                text: this.state.optionText[optionCount],
+                body: ''
+            });
+
+            console.log();
+            this.setState({ options: arr });
+        } else {
+            alert('enough options');
+        }
+    },//add
+
+    remove: function (position) {
+
+        var arr = this.state.options;
+        this.setState({ options: [] })
+        console.log('arr', arr);
+        var result = [];
+        var shiftFlag = false;
+        for (var i = 0, l = arr.length - 1; i < l; i++) {
+            var option = arr[i];
+            if (i == position) {
+                shiftFlag = true;
+            }
+
+            if (shiftFlag) {
+                option.body = CKEDITOR.instances['option' + arr[i + 1].text.toString()].getData();
+            } else {
+                option.body = CKEDITOR.instances['option' + arr[i].text.toString()].getData();
+            }
+
+            result.push(option);
         }
 
-        return(
-            <div className="option-set col-md-12">
-                <div className="option-title col-md-12" style={{ marginLeft: -15 + 'px' }}> Options </div>  
-                <div className="option-content">              
-                    {options}
+        console.log('result array', result);
+
+        this.setState({ options: result });
+
+    },//remove
+
+    render: function () {
+
+        var isAddDisabled = false;
+        if (this.state.options.length >= 6) {
+            isAddDisabled = true;
+        }
+
+        return (
+            <div className="option-set">
+                <div className="option-set-header">
+                    <span className="option-set-title" > Options </span>
+                    <span className="pull-right">
+                        <button className="btn btn-primary" onClick={this.add} disabled={isAddDisabled} ><i className="fa fa-plus"></i> Add option</button>
+                    </span>
+                </div>
+                <div className="option-content">
+                    {this.state.options.map(this.eachOption)}
                 </div>
             </div>
         );
@@ -91,21 +149,29 @@ var Question = React.createClass({
 
     componentDidMount: function () {
         CKEDITOR.replace(this.props.questionId);
-        if(this.props.action == "create"){
+        if (this.props.action == "create") {
             //
         }
-        else if(this.props.action == "edit"){
+        else if (this.props.action == "edit") {
             //get question body data from ajax and update CKEDITOR
-            var data = "<b>Test this!</b>";
+            var data = "<b>Test this question from db!</b>";
             CKEDITOR.instances[this.props.questionId].setData(data);
         }
     },//componentDidMount
 
-    render:function(){
+    render: function () {
         return (
-            <div className="question-body">
-                <textarea id={this.props.questionId} rows="5" cols="50">
-                </textarea>
+            <div className="question-content col-md-12">
+                <div className="question-header">
+                    <input ref="questionHeader" type="text" className="form-control" placeholder="* Question Header" ></input>
+                </div>
+                <div className="question-body">
+                    <textarea ref={this.props.questionId} id={this.props.questionId} rows="5" cols="50">
+                    </textarea>
+                </div>
+                <div className="question-footer">
+                    <input ref="questionFooter" type="text" className="form-control" placeholder="Example: Select three options" ></input>
+                </div>
             </div>
         );
     }//render
@@ -115,20 +181,47 @@ var Question = React.createClass({
 
 window.Board = React.createClass({
 
-    render:function(){
-        return(
+    retrieveQuestionDetails: function () {
+        var question = this.refs.question;
+
+        return {};
+    },//retrieveQuestionDetails
+
+    retrieveOptionDetails: function () {
+        var optionSet = this.refs.OptionSet;
+        return [];
+    },//retrieveOptionDetails
+
+    save: function () {
+        console.log(this);
+        var questionDetails = {},
+            optionDetails = [];
+
+        questionDetails = this.retrieveQuestionDetails();
+        optionDetails = this.retrieveOptionDetails();
+
+
+    },//save
+
+    preview: function () {
+
+    },//preview
+
+    render: function () {
+        return (
             <div className="mcq-board well well-bg col-md-12">
-                <div className="question-header">
+                <div>
                     <span className="question-title">Question</span>
-                    <span className="pull-right"> 
-                        <button className="btn btn-success">Save</button> 
+                    <span className="pull-right">
+                        <button className="btn btn-warning" onClick={this.preview}>Preview</button>
+                        <button className="btn btn-success" onClick={this.save} style={{ marginLeft: 10 + 'px' }}>Save</button>
                     </span>
                 </div>
                 <div className="question col-md-12">
-                    <Question action={this.props.action} questionId={this.props.questionId}></Question>                    
+                    <Question ref="question" action={this.props.action} questionId={this.props.questionId}></Question>
                 </div>
-                <div className="option row">
-                    <OptionSet action={this.props.action} questionId={this.props.questionId}></OptionSet>
+                <div className="option col-md-12">
+                    <OptionSet ref="optionSet" action={this.props.action} questionId={this.props.questionId}></OptionSet>
                 </div>
 
             </div>
