@@ -11,6 +11,10 @@
 
 <body class="">
 
+    <!--<div>
+        <textarea id="testCK" rows="5" cols="50"> </textarea>
+    </div>-->
+
     <div id="mcq-container" class="mcq-container col-md-12">
     </div>
 
@@ -23,17 +27,21 @@
     <script src="assets/js/bootstrap.js"></script>
 
     <script src="assets/js/ckeditor/ckeditor.js"></script>
-    <script src="assets/js/ckeditor/config.js"></script>
 
     <script type="text/babel" src="assets/jsx/mcq.jsx"></script>
 
-    <script type="text/babel">
-    
-    ReactDOM.render(
-        <Board action="create" questionId="10"></Board>,
-        document.getElementById('mcq-container')
-    );
-</script>
+    <script type="text/babel">    
+        ReactDOM.render(
+            <Board action="create" questionId="10"></Board>,
+            document.getElementById('mcq-container')
+        );
+    </script>
+
+    <script>
+        // $(function(){
+        //     CKEDITOR.replace("testCK");
+        // });
+    </script>
 
 </body>
 
